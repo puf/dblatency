@@ -1,0 +1,9 @@
+h1, h2 {
+  font-family: Lato;
+}
+
+textarea {
+	box-sizing: border-box;
+	width: 100%;  
+  height: 100%;
+}
