@@ -2,7 +2,7 @@
 
 This page compares the client-to-client latency between the two databases that are part of Firebase: Realtime Database and Firestore.
 
-When you click the <kbd>Send ping<kbd> the client write a message to a fixed path in RTDB and to a fixed document in Firestore.
+When you click the <kbd>Send ping</kbd> the client write a message to a fixed path in RTDB and to a fixed document in Firestore.
 
 All clients listen for this path/document, and when they receive an update, they write a response back to another path based on the sender and their own ID.
 
