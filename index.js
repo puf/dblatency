@@ -37,8 +37,9 @@ const createCell = (value) => {
   return td;
 };
 const log = (msg) => {
+  console.log(msg)
   const time = new Date().toISOString();
-  log.value += `${time.substring(time.length-13)}: ${msg}\n`;
+  logElm.value += `${time.substring(time.length-13)}: ${msg}\n`;
 }
 
 sendBtn.addEventListener("click", (e) => {
