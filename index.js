@@ -7,6 +7,7 @@ const myidElm = document.getElementById('myid');
 const sentatElm = document.getElementById('sentat');
 const sendBtn = document.getElementById('send');
 const logElm = document.getElementById('log');
+const countElm = document.getElementById('clientcount');
 
 const sentat2Elm = document.getElementById('sentat2');
 const responses2Table = document.getElementById('responsestable2');
@@ -28,15 +29,14 @@ const firestore = getFirestore(app);
 
 const root = ref(rtdb, 'latency');
 const sendRef = child(root, "send");
-let myid = push(sendRef).key;
-myidElm.innerText = myid;
 const echoRef = child(root, "echo");
+let myid, myEchoRTDBUnsub, myEchoFirestoreUnsub;
 
+// Auth and presence
 signInAnonymously(auth);
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    myid = user.uid;
-    myidElm.innerText = myid;
+    setMyID(user.uid);
     onValue(ref(rtdb, ".info/connected"), (snapshot) => {
       if (snapshot.val() === true) {
         const con = push(ref(rtdb, `users/${user.uid}`))
@@ -46,6 +46,10 @@ onAuthStateChanged(auth, (user) => {
     })
   }
 });
+onValue(ref(rtdb, "users"), (snapshot) => {
+  console.log(`Got users snapshot: ${JSON.stringify(snapshot.val())}, size=${snapshot.size}`);
+  countElm.innerText = snapshot.size.toString();
+})
 
 const collectionRef = collection(firestore, "latency");
 const sendDocRef = doc(collectionRef, "send");
@@ -80,17 +84,38 @@ onValue(sendRef, (snapshot) => {
     sentatElm.innerText = data.timestamp + " (" + new Date(data.timestamp) + ")";
   }
 });
-onValue(child(echoRef, myid), (snapshot) => {
-  if (!snapshot.exists()) return;
-  responsesTable.innerHTML = "";
-  snapshot.forEach((responseSnapshot) => {
-    const tr = document.createElement("tr");
-    tr.appendChild(createCell(responseSnapshot.key));
-    tr.appendChild(createCell(responseSnapshot.val()));
-    tr.appendChild(createCell((Date.now() - responseSnapshot.val())+"ms"));
-    responsesTable.appendChild(tr);
+function setMyID(newid) {
+  if (myEchoRTDBUnsub) myEchoRTDBUnsub();
+  if (myEchoFirestoreUnsub) myEchoFirestoreUnsub();
+
+  myid = newid;
+  myidElm.innerText = myid;
+
+  myEchoRefUnsub = onValue(child(echoRef, myid), (snapshot) => {
+    console.log(`Got response for RTDB ping with ${snapshot.size} nodes`);
+    if (!snapshot.exists()) return;
+    responsesTable.innerHTML = "";
+    snapshot.forEach((responseSnapshot) => {
+      const tr = document.createElement("tr");
+      tr.appendChild(createCell(responseSnapshot.key));
+      tr.appendChild(createCell(responseSnapshot.val()));
+      tr.appendChild(createCell((Date.now() - responseSnapshot.val())+"ms"));
+      responsesTable.appendChild(tr);
+    });
+  })
+  myEchoFirestoreUnsub = onSnapshot(collection(collectionRef, myid, "echo"), (snapshot) => {
+    console.log(`Got response for Firestore ping with ${snapshot.size} docs`);
+    if (snapshot.empty) return;
+    responses2Table.innerHTML = "";
+    snapshot.docs.forEach((responseSnapshot) => {
+      const tr = document.createElement("tr");
+      tr.appendChild(createCell(responseSnapshot.id));
+      tr.appendChild(createCell(responseSnapshot.data().timestamp));
+      tr.appendChild(createCell((Date.now() - responseSnapshot.data().timestamp)+"ms"));
+      responses2Table.appendChild(tr);
+    });
   });
-})
+}
 
 onSnapshot(sendDocRef, (snapshot) => {
   if (!snapshot.exists()) return;
@@ -107,15 +132,4 @@ onSnapshot(sendDocRef, (snapshot) => {
   else {
     sentat2Elm.innerText = data.timestamp + " (" + new Date(data.timestamp) + ")";
   }
-});
-onSnapshot(collection(collectionRef, myid, "echo"), (snapshot) => {
-  if (snapshot.empty) return;
-  responses2Table.innerHTML = "";
-  snapshot.docs.forEach((responseSnapshot) => {
-    const tr = document.createElement("tr");
-    tr.appendChild(createCell(responseSnapshot.id));
-    tr.appendChild(createCell(responseSnapshot.data().timestamp));
-    tr.appendChild(createCell((Date.now() - responseSnapshot.data().timestamp)+"ms"));
-    responses2Table.appendChild(tr);
-  });
 });
