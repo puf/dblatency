@@ -12,22 +12,40 @@ const sentat2Elm = document.getElementById('sentat2');
 const responses2Table = document.getElementById('responsestable2');
 
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, child, push, set, remove, onValue } from "firebase/database";
-import { getFirestore, collection, doc, setDoc, deleteDoc, getDocs, onSnapshot } from "firebase/firestore";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase/auth";
+import { getDatabase, ref, child, push, set, remove, onValue, onDisconnect } from "firebase/database";
+import { getFirestore, collection, doc, setDoc, deleteDoc, getDocs, onSnapshot, serverTimestamp } from "firebase/firestore";
 const firebaseConfig = {
-  projectId: "dblatency",
-  databaseURL: "https://dblatency-default-rtdb.firebaseio.com",
+  apiKey: "AIzaSyALE_zSIPfqjyJw_bIOLYNpq7kqiKsD2nc", // auth
+  projectId: "dblatency", // firestore
+  databaseURL: "https://dblatency-default-rtdb.firebaseio.com", // rtdb
 };
 
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const rtdb = getDatabase(app);
 const firestore = getFirestore(app);
 
 const root = ref(rtdb, 'latency');
 const sendRef = child(root, "send");
-const myid = push(sendRef).key;
+let myid = push(sendRef).key;
 myidElm.innerText = myid;
 const echoRef = child(root, "echo");
+
+signInAnonymously(auth);
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    myid = user.uid;
+    myidElm.innerText = myid;
+    onValue(ref(rtdb, ".info/connected"), (snapshot) => {
+      if (snapshot.val() === true) {
+        const con = push(ref(rtdb, `users/${user.uid}`))
+        onDisconnect(con).remove();
+        set(con, serverTimestamp());
+      }
+    })
+  }
+});
 
 const collectionRef = collection(firestore, "latency");
 const sendDocRef = doc(collectionRef, "send");
