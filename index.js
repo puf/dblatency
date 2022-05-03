@@ -30,7 +30,7 @@ const firestore = getFirestore(app);
 const root = ref(rtdb, 'latency');
 const sendRef = child(root, "send");
 const echoRef = child(root, "echo");
-let myid, myEchoRTDBUnsub, myEchoFirestoreUnsub;
+let myid, myEchoRTDBUnsub, myEchoFirestoreUnsub, mymsg;
 
 // Auth and presence
 signInAnonymously(auth);
@@ -65,8 +65,9 @@ const log = (msg) => {
 }
 
 sendBtn.addEventListener("click", (e) => {
-  set(sendRef, { sender: myid, timestamp: Date.now() });
-  setDoc(sendDocRef, { sender: myid, timestamp: Date.now() });
+  mymsg = push(sendRef).key;
+  set(sendRef, { sender: myid, msg: mymsg, timestamp: Date.now() });
+  setDoc(sendDocRef, { sender: myid, msg: mymsg, timestamp: Date.now() });
 })
 
 
@@ -91,7 +92,7 @@ function setMyID(newid) {
   myid = newid;
   myidElm.innerText = myid;
 
-  myEchoRefUnsub = onValue(child(echoRef, myid), (snapshot) => {
+  myEchoRTDBUnsub = onValue(child(echoRef, myid), (snapshot) => {
     console.log(`Got response for RTDB ping with ${snapshot.size} nodes`);
     if (!snapshot.exists()) return;
     responsesTable.innerHTML = "";
