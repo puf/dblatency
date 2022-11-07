@@ -30,10 +30,10 @@ const firestore = getFirestore(app);
 const root = ref(rtdb, 'latency');
 const sendRef = child(root, "send");
 const echoRef = child(root, "echo");
-let myid, myEchoRTDBUnsub, myEchoFirestoreUnsub, mymsg;
+let myid, myEchoRTDBUnsub, myEchoFirestoreUnsub, mymsg, sendTimestamp;
 
 // Auth and presence
-signInAnonymously(auth);
+let lastConnectionInThisWindow;
 onAuthStateChanged(auth, (user) => {
   if (user) {
     setMyID(user.uid);
@@ -47,7 +47,7 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 onValue(ref(rtdb, "users"), (snapshot) => {
-  console.log(`Got users snapshot: ${JSON.stringify(snapshot.val())}, size=${snapshot.size}`);
+  console.log(`Got /users snapshot: ${JSON.stringify(snapshot.val())}, size=${snapshot.size}`);
   countElm.innerText = snapshot.size.toString();
 })
 
@@ -66,8 +66,9 @@ const log = (msg) => {
 
 sendBtn.addEventListener("click", (e) => {
   mymsg = push(sendRef).key;
-  set(sendRef, { sender: myid, msg: mymsg, timestamp: Date.now() });
-  setDoc(sendDocRef, { sender: myid, msg: mymsg, timestamp: Date.now() });
+  sendTimestamp = Date.now();
+  set(sendRef, { sender: myid, msg: mymsg, timestamp: sendTimestamp });
+  setDoc(sendDocRef, { sender: myid, msg: mymsg, timestamp: sendTimestamp });
 })
 
 
@@ -100,7 +101,7 @@ function setMyID(newid) {
       const tr = document.createElement("tr");
       tr.appendChild(createCell(responseSnapshot.key));
       tr.appendChild(createCell(responseSnapshot.val()));
-      tr.appendChild(createCell((Date.now() - responseSnapshot.val())+"ms"));
+      tr.appendChild(createCell((Date.now() - sendTimestamp)+"ms"));
       responsesTable.appendChild(tr);
     });
   })
@@ -112,7 +113,7 @@ function setMyID(newid) {
       const tr = document.createElement("tr");
       tr.appendChild(createCell(responseSnapshot.id));
       tr.appendChild(createCell(responseSnapshot.data().timestamp));
-      tr.appendChild(createCell((Date.now() - responseSnapshot.data().timestamp)+"ms"));
+      tr.appendChild(createCell((Date.now() - sendTimestamp)+"ms"));
       responses2Table.appendChild(tr);
     });
   });
