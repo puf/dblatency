@@ -53,9 +53,9 @@ onValue(ref(rtdb, "users"), (snapshot) => {
 
 const collectionRef = collection(firestore, "latency");
 const sendDocRef = doc(collectionRef, "send");
-const createCell = (value) => {
-  const td = document.createElement("td");
-  td.innerText = value;
+const createElementWithText = (tag, textContent) => {
+  const td = document.createElement(tag);
+  td.textContent = textContent;
   return td;
 };
 const log = (msg) => {
@@ -99,9 +99,9 @@ function setMyID(newid) {
     responsesTable.innerHTML = "";
     snapshot.forEach((responseSnapshot) => {
       const tr = document.createElement("tr");
-      tr.appendChild(createCell(responseSnapshot.key));
-      tr.appendChild(createCell(responseSnapshot.val()));
-      tr.appendChild(createCell((Date.now() - sendTimestamp)+"ms"));
+      tr.appendChild(createElementWithText("td", responseSnapshot.key));
+      tr.appendChild(createElementWithText("td", responseSnapshot.val()));
+      tr.appendChild(createElementWithText("td", (Date.now() - sendTimestamp)+"ms"));
       responsesTable.appendChild(tr);
     });
   })
@@ -111,9 +111,9 @@ function setMyID(newid) {
     responses2Table.innerHTML = "";
     snapshot.docs.forEach((responseSnapshot) => {
       const tr = document.createElement("tr");
-      tr.appendChild(createCell(responseSnapshot.id));
-      tr.appendChild(createCell(responseSnapshot.data().timestamp));
-      tr.appendChild(createCell((Date.now() - sendTimestamp)+"ms"));
+      tr.appendChild(createElementWithText("td", responseSnapshot.id));
+      tr.appendChild(createElementWithText("td", responseSnapshot.data().timestamp));
+      tr.appendChild(createElementWithText("td", (Date.now() - sendTimestamp)+"ms"));
       responses2Table.appendChild(tr);
     });
   });

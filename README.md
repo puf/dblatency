@@ -12,8 +12,8 @@ The original sender receives those responses, and shows how long it took to get 
 
 ## TODO
 
-[ ] Allow setting the ID
-[ ] Store results (after requesting permission)
+[ ] Allow a client to have a nickname, a region, IP (?) and more
+[ ] Store results permanently in DB (after requesting permission)
 [ ] Lookup geolocation (or IP) and store (if enabled) (after requesting permission)
 [ ] Show multiple regions for RTDB
 [ ] Show multiple regions for Firestore
