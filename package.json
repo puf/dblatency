@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
-    "@firebase/app": "^0.7.22",
-    "firebase": "^9.7.0"
+    "@firebase/app": "^0.8.3",
+    "firebase": "^9.13.0"
   }
 }

@@ -12,7 +12,9 @@ The original sender receives those responses, and shows how long it took to get 
 
 ## TODO
 
-[ ] Allow a client to have a nickname, a region, IP (?) and more
+[x] BUG: we should only calculate the latency when we get the first response from a remote
+[ ] BUG: we write the Firestore serverTimestamp sentinel to the /users/$uid node in RTDB
+[ ] Allow a client to have a nickname, a region, IP (?), user-agent and more
 [ ] Store results permanently in DB (after requesting permission)
 [ ] Lookup geolocation (or IP) and store (if enabled) (after requesting permission)
 [ ] Show multiple regions for RTDB

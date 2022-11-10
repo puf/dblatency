@@ -14,8 +14,8 @@ const responses2Table = document.getElementById('responsestable2');
 
 import { initializeApp } from "firebase/app";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase/auth";
-import { getDatabase, ref, child, push, set, remove, onValue, onDisconnect } from "firebase/database";
-import { getFirestore, collection, doc, setDoc, deleteDoc, getDocs, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { getDatabase, ref, child, push, set, remove, onValue, onDisconnect, serverTimestamp } from "firebase/database";
+import { getFirestore, collection, doc, setDoc, deleteDoc, getDocs, onSnapshot } from "firebase/firestore";
 const firebaseConfig = {
   apiKey: "AIzaSyALE_zSIPfqjyJw_bIOLYNpq7kqiKsD2nc", // auth
   projectId: "dblatency", // firestore
@@ -45,6 +45,9 @@ onAuthStateChanged(auth, (user) => {
       }
     })
   }
+  else {
+    signInAnonymously(auth);
+  }
 });
 onValue(ref(rtdb, "users"), (snapshot) => {
   console.log(`Got /users snapshot: ${JSON.stringify(snapshot.val())}, size=${snapshot.size}`);
@@ -67,6 +70,16 @@ const log = (msg) => {
 sendBtn.addEventListener("click", (e) => {
   mymsg = push(sendRef).key;
   sendTimestamp = Date.now();
+
+  // Remove previous responses from database
+  remove(child(echoRef, myid)); // remove previous echo nodes
+  // TODO: remove previous echo docs?
+
+  // Remove previous responses from UI
+  responsesTable.innerHTML = "";
+  responses2Table.innerHTML = "";
+
+  // Send ping message that other clients will echo
   set(sendRef, { sender: myid, msg: mymsg, timestamp: sendTimestamp });
   setDoc(sendDocRef, { sender: myid, msg: mymsg, timestamp: sendTimestamp });
 })
@@ -94,27 +107,39 @@ function setMyID(newid) {
   myidElm.innerText = myid;
 
   myEchoRTDBUnsub = onValue(child(echoRef, myid), (snapshot) => {
-    console.log(`Got response for RTDB ping with ${snapshot.size} nodes`);
+    console.log(Date.now()+`Got response for RTDB ping with ${snapshot.size} nodes`);
     if (!snapshot.exists()) return;
-    responsesTable.innerHTML = "";
+    //responsesTable.innerHTML = "";
     snapshot.forEach((responseSnapshot) => {
-      const tr = document.createElement("tr");
-      tr.appendChild(createElementWithText("td", responseSnapshot.key));
-      tr.appendChild(createElementWithText("td", responseSnapshot.val()));
-      tr.appendChild(createElementWithText("td", (Date.now() - sendTimestamp)+"ms"));
-      responsesTable.appendChild(tr);
+      const key = `rtdb_${responseSnapshot.key}`;
+      let tr = document.getElementById(key);
+      if (!tr) {
+        console.log("adding result for "+key);
+        const tr = document.createElement("tr");
+        tr.id = key;
+        tr.appendChild(createElementWithText("td", responseSnapshot.key));
+        tr.appendChild(createElementWithText("td", responseSnapshot.val()));
+        tr.appendChild(createElementWithText("td", (Date.now() - sendTimestamp)+"ms"));
+        responsesTable.appendChild(tr);
+      }
     });
   })
   myEchoFirestoreUnsub = onSnapshot(collection(collectionRef, myid, "echo"), (snapshot) => {
-    console.log(`Got response for Firestore ping with ${snapshot.size} docs`);
+    console.log(Date.now()+`: Got response for Firestore ping with ${snapshot.size} docs`);
     if (snapshot.empty) return;
-    responses2Table.innerHTML = "";
+    //responses2Table.innerHTML = "";
     snapshot.docs.forEach((responseSnapshot) => {
-      const tr = document.createElement("tr");
-      tr.appendChild(createElementWithText("td", responseSnapshot.id));
-      tr.appendChild(createElementWithText("td", responseSnapshot.data().timestamp));
-      tr.appendChild(createElementWithText("td", (Date.now() - sendTimestamp)+"ms"));
-      responses2Table.appendChild(tr);
+      const key = `fs_${responseSnapshot.id}`;
+      let tr = document.getElementById(key);
+      if (!tr) {
+        console.log("adding result for "+key);
+        const tr = document.createElement("tr");
+        tr.id = key;
+        tr.appendChild(createElementWithText("td", responseSnapshot.id));
+        tr.appendChild(createElementWithText("td", responseSnapshot.data().timestamp));
+        tr.appendChild(createElementWithText("td", (Date.now() - sendTimestamp)+"ms"));
+        responses2Table.appendChild(tr);
+      }
     });
   });
 }
