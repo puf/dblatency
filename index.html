@@ -6,7 +6,13 @@
 <button id="send">Send ping</button><br/>
 
 <h2>RTDB</h2>
-Select location: <select id="rtdb-instance"></select><br/>
+<table>
+  <tr><th>instance</th><th>write latency</th></tr>
+  <tbody id="rtdbtable">
+  </tbody>
+</table>
+
+<h3>Echo speed to other clients</h3>
 <label>sent at</label>: <span id="sentat"></span><br/>
 <label>Responses: </label><br/>
 <table>

@@ -8,7 +8,7 @@ const sentatElm = document.getElementById('sentat');
 const sendBtn = document.getElementById('send');
 const logElm = document.getElementById('log');
 const countElm = document.getElementById('clientcount');
-const rtdbInstanceElm = document.getElementById('rtdb-instance');
+const rtdbTable = document.getElementById('rtdbtable');
 
 const sentat2Elm = document.getElementById('sentat2');
 const responses2Table = document.getElementById('responsestable2');
@@ -39,23 +39,23 @@ let echoRef = child(root, "echo");
 let myid, myEchoRTDBUnsub, myEchoFirestoreUnsub, mymsg, sendTimestamp;
 
 for (const [name, url] of Object.entries(RTDB_URLS)) {
-  let elm = document.createElement("option");
-  elm.setAttribute("value", url);
-  elm.innerText = name;
-  rtdbInstanceElm.appendChild(elm);
+  // Create Firebase App instance
   initializeApp({ databaseURL: url }, name);
+
+  // Add instance to results table
+  // createElm('tr', [
+  //   createElm('td', name }),
+  //   createElm('td', { id: `rtdb-${name}` }),
+  // ]);
+  const row = document.createElement('tr');
+  const nameCell = document.createElement('td');
+  nameCell.innerText = name;
+  row.appendChild(nameCell);
+  const valueCell = document.createElement('td');
+  valueCell.id = `rtdb-${name}`;
+  row.appendChild(valueCell);
+  rtdbTable.appendChild(row);
 }
-rtdbInstanceElm.addEventListener('change', (e) => {
-  console.log(e);
-  const name = e.target.options[e.target.selectedIndex].text;
-  const url = RTDB_URLS[name];
-  console.log(name, url);
-  rtdb = getDatabase(getApp(name));
-  console.log(`Selected ${rtdb}`, rtdb);
-  root = ref(rtdb, 'latency');
-  sendRef = child(root, "send");
-  echoRef = child(root, "echo");
-});
 
 // Auth and presence
 let lastConnectionInThisWindow;
@@ -104,15 +104,23 @@ sendBtn.addEventListener("click", (e) => {
   responsesTable.innerHTML = "";
   responses2Table.innerHTML = "";
 
-  // Send ping message that other clients will echo
-  set(sendRef, { sender: myid, msg: mymsg, timestamp: sendTimestamp })
-    .then(() => {
-      log(`Done after ${Date.now()-sendTimestamp}ms`)
+  // Measure write latency to all RTDB instances
+  for (const [name, url] of Object.entries(RTDB_URLS)) {
+    const db = getDatabase(getApp(name));
+    const myref = ref(db, `latency/${myid}`);
+    const now = Date.now();
+    const cell = document.getElementById(`rtdb-${name}`);
+    console.log(`Writing ${now} to ${myref.toString()}`);
+    set(myref, now).then(() => {
+      cell.innerText = `${Date.now()-now}ms`;
     }).catch((e) => {
       console.error(e);
       log(`Error: ${e}`);
     });
-  setDoc(sendDocRef, { sender: myid, msg: mymsg, timestamp: sendTimestamp });
+  };
+
+  // Send ping message that other clients will echo
+  // setDoc(sendDocRef, { sender: myid, msg: mymsg, timestamp: sendTimestamp });
 })
 
 

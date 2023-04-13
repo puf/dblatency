@@ -13,9 +13,9 @@ The original sender receives those responses, and shows how long it took to get 
 ## TODO
 
 [x] BUG: we should only calculate the latency when we get the first response from a remote
-[x] Show multiple regions for RTDB
-[ ] BUG: we can't write to non-default RTDB regions
-[ ] Measure from write til commit for RTDB, rather than to another client
+[ ] Show multiple regions for RTDB, in table
+[x] BUG: we can't write to non-default RTDB regions
+[x] Measure from write til commit for RTDB, rather than to another client
 [ ] Measure from write til commit for Firestore, rather than to another client
 [ ] BUG: we write the Firestore serverTimestamp sentinel to the /users/$uid node in RTDB
 [ ] Allow a client to have a nickname, a region, IP (?), user-agent and more
