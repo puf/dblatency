@@ -2,9 +2,7 @@ import './style.css';
 
 const appDiv = document.getElementById('app');
 appDiv.innerHTML = '<h1>Firebase DB latency test</h1>';
-const responsesTable = document.getElementById('responsestable');
 const myidElm = document.getElementById('myid');
-const sentatElm = document.getElementById('sentat');
 const sendBtn = document.getElementById('send');
 const logElm = document.getElementById('log');
 const countElm = document.getElementById('clientcount');
@@ -101,7 +99,7 @@ sendBtn.addEventListener("click", (e) => {
   // TODO: remove previous echo docs?
 
   // Remove previous responses from UI
-  responsesTable.innerHTML = "";
+  //responsesTable.innerHTML = "";
   responses2Table.innerHTML = "";
 
   // Measure write latency to all RTDB instances
@@ -135,7 +133,7 @@ onValue(sendRef, (snapshot) => {
     log("Responded to RTDB ping from "+data.sender);
   }
   else {
-    sentatElm.innerText = data.timestamp + " (" + new Date(data.timestamp) + ")";
+    //sentatElm.innerText = data.timestamp + " (" + new Date(data.timestamp) + ")";
   }
 });
 function setMyID(newid) {
@@ -149,19 +147,19 @@ function setMyID(newid) {
     console.log(Date.now()+`Got response for RTDB ping with ${snapshot.size} nodes`);
     if (!snapshot.exists()) return;
     //responsesTable.innerHTML = "";
-    snapshot.forEach((responseSnapshot) => {
-      const key = `rtdb_${responseSnapshot.key}`;
-      let tr = document.getElementById(key);
-      if (!tr) {
-        console.log("adding result for "+key);
-        const tr = document.createElement("tr");
-        tr.id = key;
-        tr.appendChild(createElementWithText("td", responseSnapshot.key));
-        tr.appendChild(createElementWithText("td", responseSnapshot.val()));
-        tr.appendChild(createElementWithText("td", (Date.now() - sendTimestamp)+"ms"));
-        responsesTable.appendChild(tr);
-      }
-    });
+    // snapshot.forEach((responseSnapshot) => {
+    //   const key = `rtdb_${responseSnapshot.key}`;
+    //   let tr = document.getElementById(key);
+    //   if (!tr) {
+    //     console.log("adding result for "+key);
+    //     const tr = document.createElement("tr");
+    //     tr.id = key;
+    //     tr.appendChild(createElementWithText("td", responseSnapshot.key));
+    //     tr.appendChild(createElementWithText("td", responseSnapshot.val()));
+    //     tr.appendChild(createElementWithText("td", (Date.now() - sendTimestamp)+"ms"));
+    //     responsesTable.appendChild(tr);
+    //   }
+    // });
   })
   myEchoFirestoreUnsub = onSnapshot(collection(collectionRef, myid, "echo"), (snapshot) => {
     console.log(Date.now()+`: Got response for Firestore ping with ${snapshot.size} docs`);
