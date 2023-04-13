@@ -8,11 +8,12 @@ const sentatElm = document.getElementById('sentat');
 const sendBtn = document.getElementById('send');
 const logElm = document.getElementById('log');
 const countElm = document.getElementById('clientcount');
+const rtdbInstanceElm = document.getElementById('rtdb-instance');
 
 const sentat2Elm = document.getElementById('sentat2');
 const responses2Table = document.getElementById('responsestable2');
 
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApp } from "firebase/app";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase/auth";
 import { getDatabase, ref, child, push, set, remove, onValue, onDisconnect, serverTimestamp } from "firebase/database";
 import { getFirestore, collection, doc, setDoc, deleteDoc, getDocs, onSnapshot } from "firebase/firestore";
@@ -21,16 +22,40 @@ const firebaseConfig = {
   projectId: "dblatency", // firestore
   databaseURL: "https://dblatency-default-rtdb.firebaseio.com", // rtdb
 };
+const RTDB_URLS = {
+  "us-central1": "https://dblatency-default-rtdb.firebaseio.com/",
+  "asia-southeast1": "https://dblatency-asia-southeast1.asia-southeast1.firebasedatabase.app/",
+  "europe-west1": "https://dblatency-europe-west1.europe-west1.firebasedatabase.app/",
+};
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const rtdb = getDatabase(app);
+let rtdb = getDatabase(app); // TODO: do this based on dropdown
 const firestore = getFirestore(app);
 
-const root = ref(rtdb, 'latency');
-const sendRef = child(root, "send");
-const echoRef = child(root, "echo");
+let root = ref(rtdb, 'latency');
+let sendRef = child(root, "send");
+let echoRef = child(root, "echo");
 let myid, myEchoRTDBUnsub, myEchoFirestoreUnsub, mymsg, sendTimestamp;
+
+for (const [name, url] of Object.entries(RTDB_URLS)) {
+  let elm = document.createElement("option");
+  elm.setAttribute("value", url);
+  elm.innerText = name;
+  rtdbInstanceElm.appendChild(elm);
+  initializeApp({ databaseURL: url }, name);
+}
+rtdbInstanceElm.addEventListener('change', (e) => {
+  console.log(e);
+  const name = e.target.options[e.target.selectedIndex].text;
+  const url = RTDB_URLS[name];
+  console.log(name, url);
+  rtdb = getDatabase(getApp(name));
+  console.log(`Selected ${rtdb}`, rtdb);
+  root = ref(rtdb, 'latency');
+  sendRef = child(root, "send");
+  echoRef = child(root, "echo");
+});
 
 // Auth and presence
 let lastConnectionInThisWindow;
@@ -80,7 +105,13 @@ sendBtn.addEventListener("click", (e) => {
   responses2Table.innerHTML = "";
 
   // Send ping message that other clients will echo
-  set(sendRef, { sender: myid, msg: mymsg, timestamp: sendTimestamp });
+  set(sendRef, { sender: myid, msg: mymsg, timestamp: sendTimestamp })
+    .then(() => {
+      log(`Done after ${Date.now()-sendTimestamp}ms`)
+    }).catch((e) => {
+      console.error(e);
+      log(`Error: ${e}`);
+    });
   setDoc(sendDocRef, { sender: myid, msg: mymsg, timestamp: sendTimestamp });
 })
 
