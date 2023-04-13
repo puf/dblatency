@@ -26,6 +26,8 @@ const RTDB_URLS = {
 const FIRESTORE_INSTANCES = {
   "nam5": "(default)",
   "eur3": "eur3",
+  "us-west2": "us-west2",
+  "asia-southeast1": "asia-southeast1",
 };
 
 const app = initializeApp(firebaseConfig);
