@@ -10,11 +10,11 @@ It measures how long it takes for the write to complete and shows that in the ta
 
 ## TODO
 
-[ ] Allow a client to have a nickname, a region, IP (?), user-agent and more
-[x] Store results permanently in DB (after requesting permission)
-[ ] Lookup geolocation (or IP) and store (if enabled) (after requesting permission)
-[x] Allow the user to opt-in to logging their latencies to the databases
-[x] Allow the user to opt-in to auto-testing, meaning we re-run the tests every minute
-[ ] Show the last latency, and the average and variance (for past 30m)
-[ ] Store ID, auto-measure and logging opt-ins in cookie
+- [ ] Allow a client to have a nickname, a region, IP (?), user-agent and more
+- [x] Store results permanently in DB (after requesting permission)
+- [ ] Lookup geolocation (or IP) and store (if enabled) (after requesting permission)
+- [x] Allow the user to opt-in to logging their latencies to the databases
+- [x] Allow the user to opt-in to auto-testing, meaning we re-run the tests every minute
+- [ ] Show the last latency, and the average and variance (for past 30m)
+- [ ] Store ID, auto-measure and logging opt-ins in cookie
 
