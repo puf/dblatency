@@ -41,37 +41,36 @@ let root = ref(rtdb, 'latency');
 let myid, myip;
 let isLoggingEnabled = true, isAutoMeasureEnabled = false;
 
+function createElm(tagName, ...args) {
+  const elm = document.createElement(tagName);
+  for (const arg of args) {
+    if (typeof arg === 'string') elm.innerText = arg
+    else if (Array.isArray(arg)) for (let key in arg) elm.appendChild(arg[key])
+    else if (typeof arg === 'object') for (let key in arg) elm[key] = arg[key];
+  }
+  return elm;
+}
+
 for (const [name, url] of Object.entries(RTDB_URLS)) {
   // Create Firebase App instance
   initializeApp({ databaseURL: url }, name);
 
   // Add instance to results table
-  // createElm('tr', [
-  //   createElm('td', name }),
-  //   createElm('td', { id: `rtdb-${name}` }),
-  // ]);
-  const row = document.createElement('tr');
-  const nameCell = document.createElement('td');
-  nameCell.innerText = name;
-  row.appendChild(nameCell);
-  const valueCell = document.createElement('td');
-  valueCell.id = `rtdb-${name}`;
-  row.appendChild(valueCell);
-  rtdbTable.appendChild(row);
+  rtdbTable.appendChild(
+    createElm('tr', [
+      createElm('td', name),
+      createElm('td', { id: `rtdb-${name}` }),
+    ])
+  );
 }
 
 for (const [label, name] of Object.entries(FIRESTORE_INSTANCES)) {
-  // row.appendChild(createElm('tr', [
-  //   createElm('td', label)
-  // ]))
-  const row = document.createElement('tr');
-  const nameCell = document.createElement('td');
-  nameCell.innerText = label;
-  row.appendChild(nameCell);
-  const valueCell = document.createElement('td');
-  valueCell.id = `firestore-${label}`;
-  row.appendChild(valueCell);
-  firestoreTable.appendChild(row);
+  firestoreTable.appendChild(
+    createElm('tr', [
+      createElm('td', label),
+      createElm('td', { id: `firestore-${label}` }),
+    ])
+  );
 }
 
 // Auth and presence
