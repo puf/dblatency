@@ -8,11 +8,13 @@ const logElm = document.getElementById('log');
 const countElm = document.getElementById('clientcount');
 const rtdbTable = document.getElementById('rtdbtable');
 const firestoreTable = document.getElementById('firestoretable');
+const autoMeasureElm = document.getElementById('automeasure');
+const logToServerElm = document.getElementById('logtoserver');
 
 import { initializeApp, getApp } from "firebase/app";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase/auth";
-import { getDatabase, ref, child, push, set, remove, onValue, onDisconnect, serverTimestamp } from "firebase/database";
-import { getFirestore, collection, doc, setDoc, deleteDoc, getDocs, onSnapshot, initializeFirestore, serverTimestamp } from "firebase/firestore";
+import { getDatabase, ref, push, set, onValue, onDisconnect, serverTimestamp as rtdbTimestamp } from "firebase/database";
+import { getFirestore, collection, doc, setDoc, addDoc, initializeFirestore, serverTimestamp as firestoreTimestamp } from "firebase/firestore";
 const firebaseConfig = {
   apiKey: "AIzaSyALE_zSIPfqjyJw_bIOLYNpq7kqiKsD2nc", // auth
   projectId: "dblatency", // firestore
@@ -36,7 +38,8 @@ let rtdb = getDatabase(app); // TODO: do this based on dropdown
 const firestore = getFirestore(app);
 
 let root = ref(rtdb, 'latency');
-let myid;
+let myid, myip;
+let isLoggingEnabled = true, isAutoMeasureEnabled = false;
 
 for (const [name, url] of Object.entries(RTDB_URLS)) {
   // Create Firebase App instance
@@ -58,6 +61,9 @@ for (const [name, url] of Object.entries(RTDB_URLS)) {
 }
 
 for (const [label, name] of Object.entries(FIRESTORE_INSTANCES)) {
+  // row.appendChild(createElm('tr', [
+  //   createElm('td', label)
+  // ]))
   const row = document.createElement('tr');
   const nameCell = document.createElement('td');
   nameCell.innerText = label;
@@ -66,7 +72,6 @@ for (const [label, name] of Object.entries(FIRESTORE_INSTANCES)) {
   valueCell.id = `firestore-${label}`;
   row.appendChild(valueCell);
   firestoreTable.appendChild(row);
-
 }
 
 // Auth and presence
@@ -78,7 +83,7 @@ onAuthStateChanged(auth, (user) => {
       if (snapshot.val() === true) {
         const con = push(ref(rtdb, `users/${user.uid}`))
         onDisconnect(con).remove();
-        set(con, serverTimestamp());
+        set(con, rtdbTimestamp());
       }
     })
   }
@@ -113,7 +118,9 @@ sendBtn.addEventListener("click", (e) => {
     const cell = document.getElementById(`rtdb-${name}`);
     console.log(`Writing ${now} to ${myref.toString()}`);
     set(myref, now).then(() => {
-      cell.innerText = `${Date.now()-now}ms`;
+      const latency = Date.now()-now;
+      cell.innerText = `${latency}ms`;
+      if (isLoggingEnabled) logToDatabase("RTDB", name, latency);
     }).catch((e) => {
       console.error(e);
       log(`Error: ${e}`);
@@ -127,9 +134,10 @@ sendBtn.addEventListener("click", (e) => {
     const now = Date.now();
     const cell = document.getElementById(`firestore-${label}`);
     console.log(`Writing ${now} to ${myref.path}`);
-    setDoc(myref, { timestamp: now, serverTimestamp: serverTimestamp() }).then(() => {
-      console.log(`Firestore: ${Date.now()-now}ms`)
-      cell.innerText = `${Date.now()-now}ms`;
+    setDoc(myref, { timestamp: now, serverTimestamp: firestoreTimestamp() }).then(() => {
+      const latency = Date.now()-now;
+      cell.innerText = `${latency}ms`;
+      if (isLoggingEnabled) logToDatabase("Firestore", name, latency);
     }).catch((e) => {
       console.error(e);
       log(`Error: ${e}`);
@@ -140,4 +148,41 @@ sendBtn.addEventListener("click", (e) => {
 function setMyID(newid) {
   myid = newid;
   myidElm.innerText = myid;
+}
+
+function getMyIP() {
+  return fetch("https://api.ipify.org/?format=text").then(res => res.text());
+}
+const logDb = initializeFirestore(app, {}, "(default)");
+const logs = collection(logDb, "logs");
+async function logToDatabase(dbtype, instance, latency) {
+  try {
+    if (!myip) {
+      myip = await getMyIP();
+    }
+    addDoc(logs, { 
+      id: myid, ip: myip, dbtype, instance, latency, timestamp: firestoreTimestamp(),
+      location: false, city: false, state:false, country: false, continent: false, 
+    });
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+autoMeasureElm.checked = isAutoMeasureEnabled;
+logToServerElm.checked = isLoggingEnabled;
+let autoMeasureTimer = null;
+autoMeasureElm.addEventListener("click", (e) => {
+  setAutoMeasureEnabled(autoMeasureElm.checked);
+})
+logToServerElm.addEventListener("click", (e) => {
+  isLoggingEnabled = logToServerElm.checked;
+})
+function setAutoMeasureEnabled(enabled) {
+  if (isAutoMeasureEnabled) clearInterval(autoMeasureTimer);
+  isAutoMeasureEnabled = enabled;
+  if (isAutoMeasureEnabled) {
+    sendBtn.click();
+    autoMeasureTimer = setInterval(() => sendBtn.click(), 60000);
+  }
 }

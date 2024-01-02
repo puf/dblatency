@@ -4,14 +4,17 @@ This page compares the client-to-client latency between the two databases that a
 
 When you click the <kbd>Send ping</kbd> the client write a message to a fixed path in RTDB and to a fixed document in Firestore.
 
-All clients listen for this path/document, and when they receive an update, they write a response back to another path based on the sender and their own ID.
-
-The original sender receives those responses, and shows how long it took to get each of them.
+It measures how long it takes for the write to complete and shows that in the tables.
 
 [Edit on StackBlitz ⚡️](https://stackblitz.com/edit/dblatency)
 
 ## TODO
 
 [ ] Allow a client to have a nickname, a region, IP (?), user-agent and more
-[ ] Store results permanently in DB (after requesting permission)
+[x] Store results permanently in DB (after requesting permission)
 [ ] Lookup geolocation (or IP) and store (if enabled) (after requesting permission)
+[x] Allow the user to opt-in to logging their latencies to the databases
+[x] Allow the user to opt-in to auto-testing, meaning we re-run the tests every minute
+[ ] Show the last latency, and the average and variance (for past 30m)
+[ ] Store ID, auto-measure and logging opt-ins in cookie
+
