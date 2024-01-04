@@ -6,6 +6,8 @@ When you click the <kbd>Send ping</kbd> the client write a message to a fixed pa
 
 It measures how long it takes for the write to complete and shows that in the tables.
 
+[Run this](https://dblatency.stackblitz.io)
+
 [Edit on StackBlitz ⚡️](https://stackblitz.com/edit/dblatency)
 
 ## TODO
