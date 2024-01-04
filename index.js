@@ -1,15 +1,16 @@
 import './style.css';
 
-const appDiv = document.getElementById('app');
+const gel = (s) => document.getElementById(s);
+const appDiv = gel('app');
 appDiv.innerHTML = '<h1>Firebase DB latency test</h1>';
-const myidElm = document.getElementById('myid');
-const sendBtn = document.getElementById('send');
-const logElm = document.getElementById('log');
-const countElm = document.getElementById('clientcount');
-const rtdbTable = document.getElementById('rtdbtable');
-const firestoreTable = document.getElementById('firestoretable');
-const autoMeasureElm = document.getElementById('automeasure');
-const logToServerElm = document.getElementById('logtoserver');
+const myidElm = gel('myid');
+const sendBtn = gel('send');
+const logElm = gel('log');
+const countElm = gel('clientcount');
+const rtdbTable = gel('rtdbtable');
+const firestoreTable = gel('firestoretable');
+const autoMeasureElm = gel('automeasure');
+const logToServerElm = gel('logtoserver');
 
 import { initializeApp, getApp } from "firebase/app";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase/auth";
@@ -124,13 +125,13 @@ sendBtn.addEventListener("click", (e) => {
       const latency = Date.now()-now;
       const history = rtdbHistory[name];
       history.push({ t: Date.now(), l: latency });
-      const min = Math.min(...history.map(e => e.l));
-      const max = Math.max(...history.map(e => e.l));
-      document.getElementById(`rtdb-${name}`).innerText = `${latency}ms`;
-      document.getElementById(`rtdb-min-${name}`).innerText = `${min}ms`;
-      document.getElementById(`rtdb-max-${name}`).innerText = `${max}ms`;
-      sparkline(document.getElementById(`rtdb-sparkline-${name}`), [0].concat(history.map(e => e.l)).toReversed());
-      
+      const vals = history.map(e => e.l);
+      gel(`rtdb-${name}`).innerText = `${latency}ms`;
+      gel(`rtdb-min-${name}`).innerText = `${Math.min(...vals)}ms`;
+      gel(`rtdb-max-${name}`).innerText = `${Math.max(...vals)}ms`;
+      const sparks = vals.toReversed().concat([0]);
+      sparkline(gel(`rtdb-sparkline-${name}`), sparks);
+
       if (isLoggingEnabled) logToDatabase("RTDB", name, latency);
     }).catch((e) => {
       console.error(e);
@@ -148,12 +149,12 @@ sendBtn.addEventListener("click", (e) => {
       const latency = Date.now()-now;
       const history = firestoreHistory[label];
       history.push({ t: Date.now(), l: latency });
-      const min = Math.min(...history.map(e => e.l));
-      const max = Math.max(...history.map(e => e.l));
-      document.getElementById(`firestore-${label}`).innerText = `${latency}ms`;
-      document.getElementById(`firestore-min-${label}`).innerText = `${min}ms`;
-      document.getElementById(`firestore-max-${label}`).innerText = `${max}ms`;
-      sparkline(document.getElementById(`firestore-sparkline-${label}`), [0].concat(history.map(e => e.l)).toReversed());
+      const vals = history.map(e => e.l);
+      gel(`firestore-${label}`).innerText = `${latency}ms`;
+      gel(`firestore-min-${label}`).innerText = `${Math.min(...vals)}ms`;
+      gel(`firestore-max-${label}`).innerText = `${Math.max(...vals)}ms`;
+      const sparks = vals.toReversed().concat([0]);
+      sparkline(gel(`firestore-sparkline-${label}`), sparks);
 
       if (isLoggingEnabled) logToDatabase("Firestore", name, latency);
     }).catch((e) => {
