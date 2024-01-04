@@ -9,21 +9,25 @@
 <input type="checkbox" id="logtoserver"><label for="logtoserver">Log measurements to server</label><br/>
 
 
+
 <h2>RTDB</h2>
 <table>
-  <tr><th>instance</th><th>write latency</th></tr>
-  <tbody id="rtdbtable">
-  </tbody>
+<thead>
+  <tr><th>&nbsp;</th><th colspan="5">write latency</th></tr><tr><th>instance</th><th>last</th><th>min</th><th>max</th><th>history</th></tr>
+</thead>
+<tbody id="rtdbtable">
+</tbody>
 </table>
 
 <h2>Firestore</h2>
 
 <table>
-<tr><th>instance</th><th>write latency</th></tr>
+<thead>
+  <tr><th>&nbsp;</th><th colspan="5">write latency</th></tr><tr><th>instance</th><th>last</th><th>min</th><th>max</th><th>history</th></tr>
+</thead>
 <tbody id="firestoretable">
 </tbody>
 </table>
-
 
 <h2>Log</h2>
 <textarea id="log" rows=25></textarea>

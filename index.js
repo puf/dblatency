@@ -37,16 +37,17 @@ const auth = getAuth(app);
 let rtdb = getDatabase(app); // TODO: do this based on dropdown
 const firestore = getFirestore(app);
 
-let root = ref(rtdb, 'latency');
 let myid, myip;
 let isLoggingEnabled = true, isAutoMeasureEnabled = false;
+
+let rtdbHistory = {}, firestoreHistory = {};
 
 function createElm(tagName, ...args) {
   const elm = document.createElement(tagName);
   for (const arg of args) {
     if (typeof arg === 'string') elm.innerText = arg
     else if (Array.isArray(arg)) for (let key in arg) elm.appendChild(arg[key])
-    else if (typeof arg === 'object') for (let key in arg) elm[key] = arg[key];
+    else if (typeof arg === 'object') for (let key in arg) elm.setAttribute(key, arg[key]);
   }
   return elm;
 }
@@ -55,22 +56,31 @@ for (const [name, url] of Object.entries(RTDB_URLS)) {
   // Create Firebase App instance
   initializeApp({ databaseURL: url }, name);
 
+  // Add history table
+  rtdbHistory[name] = [];
+
   // Add instance to results table
-  rtdbTable.appendChild(
-    createElm('tr', [
-      createElm('td', name),
-      createElm('td', { id: `rtdb-${name}` }),
-    ])
-  );
-}
+  rtdbTable.appendChild(createElm('tr', [
+    createElm('td', name),
+    createElm('td', { id: `rtdb-${name}`, align: 'right' }),
+    createElm('td', { id: `rtdb-min-${name}`, align: 'right' }),
+    createElm('td', { id: `rtdb-max-${name}`, align: 'right' }),
+    createElm('td', [
+      createElm('canvas', { class: 'sparkline', id: `rtdb-sparkline-${name}`, 'data-sparkline': '0', width: 100, height: 20 }),
+    ]),
+]));}
 
 for (const [label, name] of Object.entries(FIRESTORE_INSTANCES)) {
-  firestoreTable.appendChild(
-    createElm('tr', [
-      createElm('td', label),
-      createElm('td', { id: `firestore-${label}` }),
-    ])
-  );
+  firestoreHistory[label] = [];
+  firestoreTable.appendChild(createElm('tr', [
+    createElm('td', label),
+    createElm('td', { id: `firestore-${label}`, align: 'right' }),
+    createElm('td', { id: `firestore-min-${label}`, align: 'right' }),
+    createElm('td', { id: `firestore-max-${label}`, align: 'right' }),
+    createElm('td', [
+      createElm('canvas', { class: 'sparkline', id: `firestore-sparkline-${label}`, 'data-sparkline': '0', width: 100, height: 20 }),
+    ]),
+  ]));
 }
 
 // Auth and presence
@@ -97,11 +107,6 @@ onValue(ref(rtdb, "users"), (snapshot) => {
 
 const collectionRef = collection(firestore, "latency");
 const sendDocRef = doc(collectionRef, "send");
-const createElementWithText = (tag, textContent) => {
-  const td = document.createElement(tag);
-  td.textContent = textContent;
-  return td;
-};
 const log = (msg) => {
   console.log(msg)
   const time = new Date().toISOString();
@@ -114,11 +119,18 @@ sendBtn.addEventListener("click", (e) => {
     const db = getDatabase(getApp(name));
     const myref = ref(db, `latency/${myid}`);
     const now = Date.now();
-    const cell = document.getElementById(`rtdb-${name}`);
     console.log(`Writing ${now} to ${myref.toString()}`);
     set(myref, now).then(() => {
       const latency = Date.now()-now;
-      cell.innerText = `${latency}ms`;
+      const history = rtdbHistory[name];
+      history.push({ t: Date.now(), l: latency });
+      const min = Math.min(...history.map(e => e.l));
+      const max = Math.max(...history.map(e => e.l));
+      document.getElementById(`rtdb-${name}`).innerText = `${latency}ms`;
+      document.getElementById(`rtdb-min-${name}`).innerText = `${min}ms`;
+      document.getElementById(`rtdb-max-${name}`).innerText = `${max}ms`;
+      sparkline(document.getElementById(`rtdb-sparkline-${name}`), [0].concat(history.map(e => e.l)).toReversed());
+      
       if (isLoggingEnabled) logToDatabase("RTDB", name, latency);
     }).catch((e) => {
       console.error(e);
@@ -131,11 +143,18 @@ sendBtn.addEventListener("click", (e) => {
     const db = initializeFirestore(app, {}, name);
     const myref = doc(db, "latency", myid);
     const now = Date.now();
-    const cell = document.getElementById(`firestore-${label}`);
     console.log(`Writing ${now} to ${myref.path}`);
     setDoc(myref, { timestamp: now, serverTimestamp: firestoreTimestamp() }).then(() => {
       const latency = Date.now()-now;
-      cell.innerText = `${latency}ms`;
+      const history = firestoreHistory[label];
+      history.push({ t: Date.now(), l: latency });
+      const min = Math.min(...history.map(e => e.l));
+      const max = Math.max(...history.map(e => e.l));
+      document.getElementById(`firestore-${label}`).innerText = `${latency}ms`;
+      document.getElementById(`firestore-min-${label}`).innerText = `${min}ms`;
+      document.getElementById(`firestore-max-${label}`).innerText = `${max}ms`;
+      sparkline(document.getElementById(`firestore-sparkline-${label}`), [0].concat(history.map(e => e.l)).toReversed());
+
       if (isLoggingEnabled) logToDatabase("Firestore", name, latency);
     }).catch((e) => {
       console.error(e);
@@ -184,4 +203,37 @@ function setAutoMeasureEnabled(enabled) {
     sendBtn.click();
     autoMeasureTimer = setInterval(() => sendBtn.click(), 60000);
   }
+}
+
+// Sparkline.js below
+function sparkline(c, spark) {
+  var ctx = c.getContext("2d");
+  ctx.reset();
+  var min = Math.min.apply(Math, spark);
+  var max = Math.max.apply(Math, spark);
+  for (let a in spark) {
+      spark[a] = parseInt(spark[a], 10);
+      spark[a] += Math.abs(0 - min);
+  }
+  var scale = max - min;
+  var margin = 0;
+  var ratioW = ((c.width - margin * 2) * 1) / spark.length;
+  var ratioH = ((c.height - margin * 2) * .8) / scale;
+  var x = 0;
+  var y = 0;
+  var currentHeight = c.height - (spark[0] * ratioH + margin);
+  for (let index in spark) {
+      if (index == 0) {
+          ctx.beginPath();
+          ctx.lineWidth = "1";
+          currentHeight = c.height - (spark[index] * ratioH + margin);
+          ctx.moveTo(margin, currentHeight);
+      }
+      else {
+          x = index * ratioW + margin;
+          y = c.height - (spark[index] * ratioH + margin);
+          ctx.lineTo(x, y);
+      }
+  }
+  ctx.stroke();
 }
