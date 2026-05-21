@@ -12,6 +12,10 @@ It measures how long it takes for the write to complete and shows that in the ta
 
 ## TODO
 
+- [x] Add lark.sh RTDB-compatible database
+- [ ] Add lark.sh database with its own SDK
+- [ ] Add Firestore enterprise database (with good old API)
+- [ ] Add Firestore enterprise database with pipeline SDK
 - [ ] Allow a client to have a nickname, a region, IP (?), user-agent and more
 - [x] Store results permanently in DB (after requesting permission)
 - [ ] Lookup geolocation (or IP) and store (if enabled) (after requesting permission)
