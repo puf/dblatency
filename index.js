@@ -25,6 +25,7 @@ const RTDB_URLS = {
   "us-central1": "https://dblatency-default-rtdb.firebaseio.com/",
   "asia-southeast1": "https://dblatency-asia-southeast1.asia-southeast1.firebasedatabase.app/",
   "europe-west1": "https://dblatency-europe-west1.europe-west1.firebasedatabase.app/",
+  "lark-useast": "https://dblatency.larkdb.net/",  
 };
 const FIRESTORE_INSTANCES = {
   "nam5": "(default)",
