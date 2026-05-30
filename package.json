@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "esbuild index.js --bundle --outfile=dist/index.js --format=esm && sed 's|</body>|<script type=\"module\" src=\"index.js\"></script></body>|' index.html > dist/index.html && cp style.css dist/style.css",
+    "build": "esbuild index.js --bundle --outfile=dist/index.js --format=iife --alias:@firebase/util=./node_modules/@firebase/util/dist/index.esm2017.js --alias:@firebase/component=./node_modules/@firebase/component/dist/esm/index.esm2017.js --alias:@firebase/logger=./node_modules/@firebase/logger/dist/esm/index.esm2017.js --alias:@firebase/app=./node_modules/@firebase/app/dist/esm/index.esm2017.js --loader:.css=empty && node build.mjs",
     "dev": "npm run build && serve dist",
-    "watch": "esbuild index.js --bundle --outfile=dist/index.js --format=esm --watch"
+    "watch": "esbuild index.js --bundle --outfile=dist/index.js --format=iife --alias:@firebase/util=./node_modules/@firebase/util/dist/index.esm2017.js --alias:@firebase/component=./node_modules/@firebase/component/dist/esm/index.esm2017.js --alias:@firebase/logger=./node_modules/@firebase/logger/dist/esm/index.esm2017.js --alias:@firebase/app=./node_modules/@firebase/app/dist/esm/index.esm2017.js --loader:.css=empty --watch"
   },
   "dependencies": {
     "@firebase/app": "^0.8.3",
