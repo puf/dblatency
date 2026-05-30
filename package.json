@@ -2,8 +2,17 @@
   "name": "js",
   "version": "0.0.0",
   "private": true,
+  "scripts": {
+    "build": "esbuild index.js --bundle --outfile=dist/index.js --format=esm && sed 's|</body>|<script type=\"module\" src=\"index.js\"></script></body>|' index.html > dist/index.html && cp style.css dist/style.css",
+    "dev": "npm run build && serve dist",
+    "watch": "esbuild index.js --bundle --outfile=dist/index.js --format=esm --watch"
+  },
   "dependencies": {
     "@firebase/app": "^0.8.3",
     "firebase": "^9.13.0"
+  },
+  "devDependencies": {
+    "esbuild": "latest",
+    "serve": "latest"
   }
 }
