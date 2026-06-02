@@ -8,10 +8,13 @@ It measures how long it takes for the write to complete and shows that in the ta
 
 [Run this](https://dblatency.stackblitz.io)
 
+[🆕 Run this on Firebase Hosting](https://dblatency.web.app)
+
 [Edit on StackBlitz ⚡️](https://stackblitz.com/edit/dblatency)
 
 ## TODO
 
+- [x] Make it run on Firebase Hosting, since StackBlitz has been unreliable on this (age-old) template. It auto-deploys from GitHub, so you (well: I) can still edit from StackBlitz.
 - [x] Add lark.sh RTDB-compatible database
 - [ ] Add lark.sh database with its own SDK
 - [ ] Add Firestore enterprise database (with good old API)
