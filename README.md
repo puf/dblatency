@@ -17,7 +17,7 @@ It measures how long it takes for the write to complete and shows that in the ta
 - [x] Make it run on Firebase Hosting, since StackBlitz has been unreliable on this (age-old) template. It auto-deploys from GitHub, so you (well: I) can still edit from StackBlitz.
 - [x] Add lark.sh RTDB-compatible database
 - [ ] Add lark.sh database with its own SDK
-- [ ] Add Firestore enterprise database (with good old API)
+- [x] Add Firestore enterprise database (with good old API)
 - [ ] Add Firestore enterprise database with pipeline SDK
 - [ ] Allow a client to have a nickname, a region, IP (?), user-agent and more
 - [x] Store results permanently in DB (after requesting permission)
